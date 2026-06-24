@@ -295,6 +295,33 @@ const DATA = [
 const STORAGE_KEY = "coach-roadmap:v1";
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>';
 
+/* ---------- storage adapter: Claude storage if present, else browser localStorage, else memory ---------- */
+const Store = {
+  mode:'memory', mem:{},
+  async init(){
+    if(window.storage && typeof window.storage.get==='function'){
+      try{ await window.storage.set('__sk_test','1',false); const r=await window.storage.get('__sk_test',false); if(r && r.value==='1'){ this.mode='cloud'; return; } }catch(e){}
+    }
+    try{ localStorage.setItem('__sk_test','1'); if(localStorage.getItem('__sk_test')==='1'){ localStorage.removeItem('__sk_test'); this.mode='local'; return; } }catch(e){}
+    this.mode='memory';
+  },
+  async get(k){
+    if(this.mode==='cloud'){ try{ const r=await window.storage.get(k,false); return r?r.value:null; }catch(e){ return null; } }
+    if(this.mode==='local'){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+    return (k in this.mem)?this.mem[k]:null;
+  },
+  async set(k,v){
+    if(this.mode==='cloud'){ await window.storage.set(k,v,false); return; }
+    if(this.mode==='local'){ localStorage.setItem(k,v); return; }
+    this.mem[k]=v;
+  },
+  async del(k){
+    if(this.mode==='cloud'){ try{ await window.storage.delete(k,false); }catch(e){} return; }
+    if(this.mode==='local'){ try{ localStorage.removeItem(k); }catch(e){} return; }
+    delete this.mem[k];
+  }
+};
+
 let state = { checked:{}, collapsed:{} };
 const allIds = [];
 DATA.forEach(p=>p.tracks.forEach(tr=>tr.items.forEach(it=>{ if(it.id) allIds.push(it.id); })));
@@ -311,9 +338,9 @@ const STATUS = [
 
 async function load(){
   try{
-    const res = await window.storage.get(STORAGE_KEY, false);
-    if(res && res.value){
-      const parsed = JSON.parse(res.value);
+    const v = await Store.get(STORAGE_KEY);
+    if(v){
+      const parsed = JSON.parse(v);
       state.checked = parsed.checked || {};
       state.collapsed = parsed.collapsed || {};
     }
@@ -325,7 +352,7 @@ async function load(){
 async function save(){
   const el = document.getElementById("saveState");
   try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+    await Store.set(STORAGE_KEY, JSON.stringify(state));
     el.textContent = "Saved \u2713";
     clearTimeout(save._t);
     save._t = setTimeout(()=>{ el.textContent=""; }, 1500);
@@ -481,8 +508,8 @@ function applyTheme(){
   if(c){ root.setProperty('--ember-soft',`rgba(${c.r},${c.g},${c.b},.16)`); root.setProperty('--ember-dark',`rgb(${Math.round(c.r*.5)},${Math.round(c.g*.5)},${Math.round(c.b*.5)})`); }
   root.setProperty('color-scheme', theme.base==='light'?'light':'dark');
 }
-async function loadTheme(){ try{ const r=await window.storage.get(THEME_KEY,false); if(r&&r.value){ const t=JSON.parse(r.value); if(t.base)theme.base=t.base; if(t.accent)theme.accent=t.accent; } }catch(e){} }
-async function saveTheme(){ try{ await window.storage.set(THEME_KEY,JSON.stringify(theme),false); }catch(e){} }
+async function loadTheme(){ try{ const v=await Store.get(THEME_KEY); if(v){ const t=JSON.parse(v); if(t.base)theme.base=t.base; if(t.accent)theme.accent=t.accent; } }catch(e){} }
+async function saveTheme(){ try{ await Store.set(THEME_KEY,JSON.stringify(theme)); }catch(e){} }
 function refreshThemeUI(){
   document.querySelectorAll('.tp-base').forEach(x=>x.classList.toggle('on',x.dataset.base===theme.base));
   document.querySelectorAll('.tp-sw').forEach(x=>x.classList.toggle('on',x.dataset.c.toLowerCase()===theme.accent.toLowerCase()));
@@ -502,7 +529,8 @@ function initThemePicker(){
 }
 
 (async function init(){
-  if(!window.storage || typeof window.storage.get!=="function"){ document.getElementById("storageWarn").style.display="block"; }
+  await Store.init();
+  if(Store.mode==='memory'){ document.getElementById("storageWarn").style.display="block"; }
   await loadTheme(); applyTheme(); initThemePicker();
   await load();
   render();
