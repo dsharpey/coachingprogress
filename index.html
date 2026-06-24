@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Roadmap — Sharpey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme:dark;
+    --bg:#15121E;
+    --raise:#1F1A2D;
+    --raise2:#2A2440;
+    --line:#382F50;
+    --ink:#EFEBF7;
+    --dim:#A99FC0;
+    --faint:#6F6589;
+    --ember:#9A6BF5;
+    --ember-soft:rgba(154,107,245,.16);
+    --ember-dark:#5A2CB5;
+    --gold:#E2B355;
+    --tick-min:rgba(236,240,246,.16);
+    --tick-maj:rgba(236,240,246,.34);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    padding:0 16px 80px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  /* ---------- HEADER / SIGNATURE GAUGE ---------- */
+  header{padding:34px 0 22px;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--ember);margin:0 0 10px;
+  }
+  .wordmark{
+    font-family:'Oswald',sans-serif;font-weight:700;
+    font-size:clamp(30px,8vw,46px);line-height:.98;
+    letter-spacing:.01em;text-transform:uppercase;margin:0;
+  }
+  .wordmark span{color:var(--ember);}
+  .sub{color:var(--dim);font-size:14px;margin:10px 0 26px;max-width:46ch;}
+
+  .gauge{background:var(--raise);border:1px solid var(--line);border-radius:var(--radius);padding:22px;}
+  .gauge-top{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;}
+  .pct{
+    font-family:'Oswald',sans-serif;font-weight:700;
+    font-size:clamp(48px,14vw,76px);line-height:.85;letter-spacing:-.01em;
+  }
+  .pct small{font-size:.4em;color:var(--dim);font-weight:500;margin-left:2px;}
+  .gauge-meta{text-align:right;}
+  .gauge-meta .lbl{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);}
+  .gauge-meta .frac{font-family:'JetBrains Mono',monospace;font-size:18px;color:var(--ink);margin-top:4px;}
+
+  /* tape-measure progress track */
+  .tape{position:relative;height:26px;margin-top:18px;border-radius:6px;overflow:hidden;background:var(--bg);border:1px solid var(--line);}
+  .tape-fill{position:absolute;inset:0 auto 0 0;width:0%;background:linear-gradient(90deg,var(--ember-dark),var(--ember));transition:width .5s cubic-bezier(.22,1,.36,1);}
+  .tape-ticks{position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,transparent 0,transparent calc(5% - 1px),var(--tick-min) calc(5% - 1px),var(--tick-min) 5%);}
+  .tape-ticks::after{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,transparent 0,transparent calc(25% - 1px),var(--tick-maj) calc(25% - 1px),var(--tick-maj) 25%);}
+
+  .status-line{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ember);margin-top:14px;letter-spacing:.04em;min-height:16px;}
+
+  /* ---------- PHASES ---------- */
+  .phase{margin-top:38px;}
+  .phase-head{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:16px;}
+  .phase-num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ember);letter-spacing:.1em;}
+  .phase-title{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;font-size:20px;letter-spacing:.04em;margin:0;flex:1;}
+  .phase-count{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);}
+
+  /* ---------- TRACK CARDS ---------- */
+  .track{background:var(--raise);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;}
+  .track-head{display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;user-select:none;background:none;border:none;width:100%;text-align:left;color:inherit;font:inherit;}
+  .track-head:hover{background:var(--raise2);}
+  .track-head:focus-visible{outline:2px solid var(--ember);outline-offset:-2px;}
+  .track-name{font-family:'Oswald',sans-serif;font-weight:500;font-size:17px;letter-spacing:.02em;flex:1;}
+  .track-frac{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--dim);white-space:nowrap;}
+  .track-frac.full{color:var(--gold);}
+  .chev{width:10px;height:10px;border-right:2px solid var(--dim);border-bottom:2px solid var(--dim);transform:rotate(45deg);transition:transform .25s ease;flex-shrink:0;}
+  .track.open .chev{transform:rotate(225deg);}
+
+  .ring{position:relative;width:34px;height:34px;flex-shrink:0;border-radius:50%;background:conic-gradient(var(--ember) 0deg,var(--bg) 0deg);transition:background .4s ease;}
+  .ring::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--raise);}
+  .track-head:hover .ring::after{background:var(--raise2);}
+
+  .track-body{display:none;padding:4px 18px 14px;border-top:1px solid var(--line);}
+  .track.open .track-body{display:block;}
+
+  .subgroup{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:16px 0 6px;}
+  .subgroup:first-child{margin-top:10px;}
+
+  /* ---------- CHECK ITEMS ---------- */
+  .item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;cursor:pointer;border-bottom:1px solid rgba(58,49,40,.5);}
+  .item:last-child{border-bottom:none;}
+  .box{width:21px;height:21px;border-radius:6px;border:2px solid var(--faint);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .18s ease;position:relative;}
+  .box svg{width:12px;height:12px;opacity:0;transform:scale(.5);transition:all .18s ease;}
+  .item input{position:absolute;opacity:0;width:0;height:0;}
+  .item input:focus-visible + .box{outline:2px solid var(--ember);outline-offset:2px;}
+  .item.done .box{background:var(--ember);border-color:var(--ember);}
+  .item.done .box svg{opacity:1;transform:scale(1);}
+  .label{font-size:15px;color:var(--ink);transition:color .18s ease;}
+  .item.done .label{color:var(--faint);text-decoration:line-through;text-decoration-color:var(--faint);}
+
+  /* ---------- FOOTER ---------- */
+  .footer{margin-top:40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .reset{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:none;border:1px solid var(--line);color:var(--dim);padding:9px 14px;border-radius:8px;cursor:pointer;transition:all .18s ease;}
+  .reset:hover{border-color:var(--ember);color:var(--ember);}
+  .reset:focus-visible{outline:2px solid var(--ember);outline-offset:2px;}
+  .save-state{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:.04em;}
+
+  .loading{text-align:center;color:var(--dim);padding:60px 0;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;font-size:13px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+
+  .theme-btn{position:fixed;top:14px;right:14px;z-index:40;width:40px;height:40px;border-radius:11px;background:var(--raise);border:1px solid var(--line);color:var(--ember);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .theme-btn:hover{border-color:var(--ember);}
+  .theme-btn:focus-visible{outline:2px solid var(--ember);outline-offset:2px;}
+  .theme-panel{position:fixed;top:62px;right:14px;z-index:40;background:var(--raise);border:1px solid var(--line);border-radius:14px;padding:16px;width:250px;box-shadow:0 18px 50px rgba(0,0,0,.45);}
+  .tp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .tp-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);}
+  .tp-bases{display:flex;gap:8px;}
+  .tp-base{background:var(--bg);border:1px solid var(--line);color:var(--dim);border-radius:9px;padding:8px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
+  .tp-base.on{border-color:var(--ember);color:var(--ember);background:var(--ember-soft);}
+  .tp-swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-top:9px;}
+  .tp-sw{aspect-ratio:1;border-radius:8px;border:2px solid transparent;cursor:pointer;padding:0;}
+  .tp-sw.on{border-color:var(--ink);}
+  .tp-custom{width:46px;height:30px;border:1px solid var(--line);border-radius:8px;background:var(--bg);cursor:pointer;padding:2px;}
+</style>
+</head>
+<body>
+<button id="themeBtn" class="theme-btn" aria-label="Change colors">&#9681;</button>
+<div id="themePanel" class="theme-panel hidden">
+  <div class="tp-row"><span class="tp-label">Base</span>
+    <div class="tp-bases">
+      <button class="tp-base" data-base="dark">Dark</button>
+      <button class="tp-base" data-base="light">Light</button>
+    </div>
+  </div>
+  <div class="tp-label" style="margin-top:15px">Accent</div>
+  <div class="tp-swatches" id="tpSwatches"></div>
+  <div class="tp-row" style="margin-top:13px"><span class="tp-label">Custom</span>
+    <input type="color" id="tpCustom" class="tp-custom" aria-label="Custom accent color">
+  </div>
+</div>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Sharpey · Build</p>
+    <h1 class="wordmark">The <span>Roadmap</span></h1>
+    <p class="sub">Everything between you and coaching for real, measured one tick at a time. Tap a track to open it. Your progress saves automatically.</p>
+
+    <div class="gauge" aria-label="Overall coach readiness">
+      <div class="gauge-top">
+        <div class="pct" id="pct">0<small>%</small></div>
+        <div class="gauge-meta">
+          <div class="lbl">Coach readiness</div>
+          <div class="frac" id="totalFrac">0 / 0</div>
+        </div>
+      </div>
+      <div class="tape" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="tape">
+        <div class="tape-fill" id="tapeFill"></div>
+        <div class="tape-ticks"></div>
+      </div>
+      <div class="status-line" id="status">Loading your progress…</div>
+    </div>
+  </header>
+
+  <main id="board">
+    <div class="loading">Loading…</div>
+  </main>
+
+  <div class="footer">
+    <span class="save-state" id="saveState"></span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="reset" id="backupBtn">Backup</button>
+      <button class="reset" id="restoreBtn">Restore</button>
+      <button class="reset" id="reset">Reset all progress</button>
+    </div>
+  </div>
+  <input type="file" id="restoreInput" accept="application/json,.json" style="display:none">
+  <div id="storageWarn" style="display:none;margin-top:14px;padding:12px 14px;border:1px solid var(--gold);border-radius:10px;background:rgba(226,179,85,.08);font-size:12.5px;color:var(--dim)">This device isn't letting progress auto-save. Use <b>Backup</b> to download your progress so it isn't lost.</div>
+</div>
+
+<script>
+const DATA = [
+  {
+    title:"Become the proof",
+    tracks:[
+      {id:"phys", name:"Physique", items:[
+        {id:"phys-abs", t:"All abs visible"},
+        {id:"phys-cond", t:"Lean enough to hold conditioning, not just a peak-week look"},
+        {id:"phys-prop", t:"Balanced proportions, no glaring weak points"},
+        {id:"phys-doc", t:"Transformation documented with regular photos"},
+      ]},
+      {id:"nut", name:"Nutrition (your own)", items:[
+        {id:"nut-meals", t:"Eating the correct meals, consistently"},
+        {id:"nut-maint", t:"Know your own maintenance calories & macros"},
+        {id:"nut-cutbulk", t:"Can run a cut and a lean bulk on yourself"},
+        {id:"nut-sustain", t:"Habits sustainable enough to actually teach"},
+      ]},
+      {id:"know", name:"Knowledge", items:[
+        {sub:"Training"},
+        {id:"k-overload", t:"Progressive overload"},
+        {id:"k-period", t:"Periodization & deloads"},
+        {id:"k-volume", t:"Volume landmarks (MV / MEV / MAV / MRV)"},
+        {id:"k-select", t:"Exercise selection & technique"},
+        {id:"k-splits", t:"Designing splits"},
+        {sub:"Nutrition"},
+        {id:"k-energy", t:"Energy balance"},
+        {id:"k-macros", t:"Macros & protein targets"},
+        {id:"k-breaks", t:"Diet breaks & refeeds"},
+        {id:"k-supps", t:"Supplements that actually work"},
+        {id:"k-adhere", t:"Real-world adherence"},
+        {sub:"Recovery"},
+        {id:"k-sleep", t:"Sleep"},
+        {id:"k-stress", t:"Stress management"},
+        {id:"k-fatigue", t:"Deloads & fatigue management"},
+        {id:"k-injury", t:"Basic injury management"},
+        {sub:"How the body works"},
+        {id:"k-hyper", t:"Muscle growth (hypertrophy) mechanisms"},
+        {id:"k-fatloss", t:"Fat-loss physiology"},
+        {id:"k-energy-sys", t:"Energy systems"},
+        {id:"k-lifting", t:"What happens in the body when you lift"},
+        {sub:"Scope & safety"},
+        {id:"k-special", t:"Special-population basics"},
+        {id:"k-refer", t:"When to refer out (GP / dietitian / physio)"},
+      ]},
+    ]
+  },
+  {
+    title:"Build the engine",
+    tracks:[
+      {id:"plat", name:"Coaching platform", items:[
+        {id:"plat-build", t:"Platform built to track everything per client"},
+        {id:"plat-profiles", t:"Client profiles & goals"},
+        {id:"plat-progress", t:"Progress tracking (weight, photos, lifts, measurements)"},
+        {id:"plat-checkin", t:"Check-in data capture"},
+        {id:"plat-deliver", t:"Plan delivery to clients"},
+      ]},
+      {id:"plans", name:"Programs & plans", items:[
+        {id:"plan-train", t:"Training plans for multiple goals"},
+        {id:"plan-diet", t:"Diet plans for multiple goals"},
+        {id:"plan-restrict", t:"Options for restrictions (veg/vegan, allergies, etc.)"},
+        {id:"plan-template", t:"Templates you can personalise fast"},
+        {id:"plan-levels", t:"Beginner → advanced coverage"},
+      ]},
+      {id:"skill", name:"Coaching skill", items:[
+        {id:"sk-behave", t:"Behaviour-change & accountability system"},
+        {id:"sk-cadence", t:"Check-in cadence & format"},
+        {id:"sk-form", t:"Form-check / video-review process"},
+        {id:"sk-comms", t:"Communication channels & response times"},
+        {id:"sk-onboard", t:"Client onboarding flow"},
+      ]},
+      {id:"legal", name:"Legal & admin", items:[
+        {id:"lg-reg", t:"Business registered + tax sorted"},
+        {id:"lg-ins", t:"Coaching / liability insurance"},
+        {id:"lg-contract", t:"Contracts, PAR-Q & waivers"},
+        {id:"lg-pay", t:"Payment processing + pricing set"},
+      ]},
+    ]
+  },
+  {
+    title:"Win clients",
+    tracks:[
+      {id:"mkt", name:"Marketing & content", items:[
+        {id:"mk-niche", t:"Niche & positioning nailed"},
+        {id:"mk-offer", t:"Irresistible offer crafted"},
+        {id:"mk-tof", t:"Content strategy — top of funnel"},
+        {id:"mk-mof", t:"Content strategy — mid funnel"},
+        {id:"mk-bof", t:"Content strategy — bottom of funnel"},
+        {id:"mk-ads", t:"Learn ads, tonality & positioning"},
+        {id:"mk-dm", t:"Outreach / lead-gen system (DMs)"},
+        {id:"mk-call", t:"Discovery / sales-call process"},
+      ]},
+      {id:"proof", name:"Credibility & proof", items:[
+        {id:"pr-cert", t:"Certification done"},
+        {id:"pr-trans", t:"Your own transformation as proof"},
+        {id:"pr-testi", t:"First testimonials (beta clients)"},
+      ]},
+    ]
+  },
+];
+
+const STORAGE_KEY = "coach-roadmap:v1";
+const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>';
+
+let state = { checked:{}, collapsed:{} };
+const allIds = [];
+DATA.forEach(p=>p.tracks.forEach(tr=>tr.items.forEach(it=>{ if(it.id) allIds.push(it.id); })));
+
+const STATUS = [
+  {at:0,  m:"// Day one. The only rep that counts is the next one."},
+  {at:10, m:"// Foundation going in. Keep stacking."},
+  {at:25, m:"// A quarter loaded. Momentum is real now."},
+  {at:50, m:"// Halfway. You're closer to coach than not."},
+  {at:75, m:"// Final stretch — sharpen the offer and the proof."},
+  {at:95, m:"// Almost loaded. Don't ease off the bar."},
+  {at:100,m:"// Locked out. You're ready to coach for real."},
+];
+
+async function load(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      state.checked = parsed.checked || {};
+      state.collapsed = parsed.collapsed || {};
+    }
+  }catch(e){
+    // no saved data yet — start fresh, this is expected
+  }
+}
+
+async function save(){
+  const el = document.getElementById("saveState");
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+    el.textContent = "Saved \u2713";
+    clearTimeout(save._t);
+    save._t = setTimeout(()=>{ el.textContent=""; }, 1500);
+  }catch(e){
+    el.textContent = "Couldn't save on this device";
+    const w=document.getElementById("storageWarn"); if(w) w.style.display="block";
+  }
+}
+
+function trackStats(tr){
+  const ids = tr.items.filter(i=>i.id).map(i=>i.id);
+  const done = ids.filter(id=>state.checked[id]).length;
+  return {done, total:ids.length};
+}
+
+function render(){
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+  DATA.forEach((phase, pi)=>{
+    const pIds = [];
+    phase.tracks.forEach(tr=>tr.items.forEach(it=>{ if(it.id) pIds.push(it.id); }));
+    const pDone = pIds.filter(id=>state.checked[id]).length;
+
+    const sec = document.createElement("section");
+    sec.className = "phase";
+    sec.innerHTML = `
+      <div class="phase-head">
+        <span class="phase-num">P${pi+1}</span>
+        <h2 class="phase-title">${phase.title}</h2>
+        <span class="phase-count">${pDone}/${pIds.length}</span>
+      </div>`;
+
+    phase.tracks.forEach(tr=>{
+      const {done,total} = trackStats(tr);
+      const deg = total ? Math.round((done/total)*360) : 0;
+      const isOpen = !state.collapsed[tr.id];
+
+      const card = document.createElement("div");
+      card.className = "track" + (isOpen?" open":"");
+      card.dataset.track = tr.id;
+
+      const head = document.createElement("button");
+      head.className = "track-head";
+      head.setAttribute("aria-expanded", isOpen ? "true":"false");
+      head.innerHTML = `
+        <span class="ring" style="background:conic-gradient(var(--ember) ${deg}deg, var(--bg) ${deg}deg)"></span>
+        <span class="track-name">${tr.name}</span>
+        <span class="track-frac ${done===total&&total>0?'full':''}">${done}/${total}</span>
+        <span class="chev"></span>`;
+      head.addEventListener("click", ()=>{
+        state.collapsed[tr.id] = !state.collapsed[tr.id];
+        card.classList.toggle("open");
+        head.setAttribute("aria-expanded", card.classList.contains("open")?"true":"false");
+        save();
+      });
+
+      const body = document.createElement("div");
+      body.className = "track-body";
+      tr.items.forEach(it=>{
+        if(it.sub){
+          const s = document.createElement("div");
+          s.className = "subgroup";
+          s.textContent = it.sub;
+          body.appendChild(s);
+          return;
+        }
+        const done = !!state.checked[it.id];
+        const lab = document.createElement("label");
+        lab.className = "item" + (done?" done":"");
+        lab.innerHTML = `
+          <input type="checkbox" ${done?"checked":""} aria-label="${it.t}">
+          <span class="box">${CHECK_SVG}</span>
+          <span class="label">${it.t}</span>`;
+        const input = lab.querySelector("input");
+        input.addEventListener("change", ()=>{
+          state.checked[it.id] = input.checked;
+          lab.classList.toggle("done", input.checked);
+          updateGauge();
+          // refresh this track's ring + fraction without full re-render
+          const st = trackStats(tr);
+          const ringDeg = st.total ? Math.round((st.done/st.total)*360) : 0;
+          head.querySelector(".ring").style.background = `conic-gradient(var(--ember) ${ringDeg}deg, var(--bg) ${ringDeg}deg)`;
+          const frac = head.querySelector(".track-frac");
+          frac.textContent = `${st.done}/${st.total}`;
+          frac.classList.toggle("full", st.done===st.total && st.total>0);
+          // update phase count
+          const pd = pIds.filter(id=>state.checked[id]).length;
+          sec.querySelector(".phase-count").textContent = `${pd}/${pIds.length}`;
+          save();
+        });
+        body.appendChild(lab);
+      });
+
+      card.appendChild(head);
+      card.appendChild(body);
+      sec.appendChild(card);
+    });
+
+    board.appendChild(sec);
+  });
+}
+
+function updateGauge(){
+  const done = allIds.filter(id=>state.checked[id]).length;
+  const total = allIds.length;
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById("pct").innerHTML = pct + '<small>%</small>';
+  document.getElementById("totalFrac").textContent = `${done} / ${total}`;
+  document.getElementById("tapeFill").style.width = pct + "%";
+  const tape = document.getElementById("tape");
+  tape.setAttribute("aria-valuenow", pct);
+  let msg = STATUS[0].m;
+  for(const s of STATUS){ if(pct>=s.at) msg = s.m; }
+  document.getElementById("status").textContent = msg;
+}
+
+document.getElementById("reset").addEventListener("click", async ()=>{
+  if(!confirm("Reset every tick back to zero? This can't be undone.")) return;
+  state.checked = {};
+  await save();
+  render();
+  updateGauge();
+});
+
+function backupT(){
+  const blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),state})],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="sharpey-roadmap-backup.json"; a.click(); URL.revokeObjectURL(a.href);
+}
+document.getElementById("backupBtn").addEventListener("click",backupT);
+document.getElementById("restoreBtn").addEventListener("click",()=>document.getElementById("restoreInput").click());
+document.getElementById("restoreInput").addEventListener("change",async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  if(!confirm("Restore progress from a backup file? This replaces your current ticks.")){ e.target.value=""; return; }
+  try{ const d=JSON.parse(await f.text()); if(d.state){ state.checked=d.state.checked||{}; state.collapsed=d.state.collapsed||{}; await save(); render(); updateGauge(); } }
+  catch(err){ alert("Couldn't read that backup file."); }
+  e.target.value="";
+});
+
+/* ---------- theme ---------- */
+const THEME_KEY="sharpey:roadmap:theme:v1";
+const BASES={
+  dark:{'--bg':'#161518','--raise':'#201F24','--raise2':'#2B2A30','--line':'#38373F','--ink':'#ECEBEF','--dim':'#A2A0A9','--faint':'#6C6A74','--gold':'#E2B355','--tick-min':'rgba(236,240,246,.16)','--tick-maj':'rgba(236,240,246,.34)'},
+  light:{'--bg':'#F5F5F3','--raise':'#FFFFFF','--raise2':'#EEEEEB','--line':'#E2E2DD','--ink':'#1B1B1F','--dim':'#5A5A63','--faint':'#9694A0','--gold':'#9C7415','--tick-min':'rgba(90,70,130,.20)','--tick-maj':'rgba(90,70,130,.40)'}
+};
+const SWATCHES=['#E5484D','#F2762E','#E8A93B','#D4A537','#84CC4E','#25B36B','#14B8A6','#22B8CF','#3B9EFF','#4F7CF6','#6366F1','#9A6BF5'];
+let theme={base:'dark',accent:'#E5484D'};
+function hexToRgb(h){ h=(h||'').replace('#',''); if(h.length===3)h=h.split('').map(x=>x+x).join(''); const n=parseInt(h,16); if(isNaN(n))return null; return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
+function applyTheme(){
+  const b=BASES[theme.base]||BASES.dark, root=document.documentElement.style;
+  for(const k in b) root.setProperty(k,b[k]);
+  root.setProperty('--ember',theme.accent);
+  const c=hexToRgb(theme.accent);
+  if(c){ root.setProperty('--ember-soft',`rgba(${c.r},${c.g},${c.b},.16)`); root.setProperty('--ember-dark',`rgb(${Math.round(c.r*.5)},${Math.round(c.g*.5)},${Math.round(c.b*.5)})`); }
+  root.setProperty('color-scheme', theme.base==='light'?'light':'dark');
+}
+async function loadTheme(){ try{ const r=await window.storage.get(THEME_KEY,false); if(r&&r.value){ const t=JSON.parse(r.value); if(t.base)theme.base=t.base; if(t.accent)theme.accent=t.accent; } }catch(e){} }
+async function saveTheme(){ try{ await window.storage.set(THEME_KEY,JSON.stringify(theme),false); }catch(e){} }
+function refreshThemeUI(){
+  document.querySelectorAll('.tp-base').forEach(x=>x.classList.toggle('on',x.dataset.base===theme.base));
+  document.querySelectorAll('.tp-sw').forEach(x=>x.classList.toggle('on',x.dataset.c.toLowerCase()===theme.accent.toLowerCase()));
+  const cu=document.getElementById('tpCustom'); if(cu&&/^#[0-9a-fA-F]{6}$/.test(theme.accent)) cu.value=theme.accent;
+}
+function initThemePicker(){
+  const sw=document.getElementById('tpSwatches');
+  sw.innerHTML=SWATCHES.map(c=>`<button class="tp-sw" style="background:${c}" data-c="${c}" aria-label="Accent ${c}"></button>`).join('');
+  document.getElementById('themeBtn').addEventListener('click',e=>{ e.stopPropagation(); document.getElementById('themePanel').classList.toggle('hidden'); });
+  document.querySelectorAll('.tp-base').forEach(b=>b.addEventListener('click',()=>{ theme.base=b.dataset.base; applyTheme(); saveTheme(); refreshThemeUI(); }));
+  sw.addEventListener('click',e=>{ const b=e.target.closest('.tp-sw'); if(!b)return; theme.accent=b.dataset.c; applyTheme(); saveTheme(); refreshThemeUI(); });
+  const cu=document.getElementById('tpCustom');
+  cu.addEventListener('input',()=>{ theme.accent=cu.value; applyTheme(); refreshThemeUI(); });
+  cu.addEventListener('change',saveTheme);
+  document.addEventListener('click',e=>{ const p=document.getElementById('themePanel'); if(p&&!p.classList.contains('hidden')&&!p.contains(e.target)&&e.target.id!=='themeBtn') p.classList.add('hidden'); });
+  refreshThemeUI();
+}
+
+(async function init(){
+  if(!window.storage || typeof window.storage.get!=="function"){ document.getElementById("storageWarn").style.display="block"; }
+  await loadTheme(); applyTheme(); initThemePicker();
+  await load();
+  render();
+  updateGauge();
+})();
+</script>
+</body>
+</html>
